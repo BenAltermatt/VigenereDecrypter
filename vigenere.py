@@ -107,7 +107,7 @@ def build_table(mgsmatrix):
     
     output += '\n'
 
-    for i in range(0, 25):
+    for i in range(0, 26):
         output += '|{:d}\t|'.format(i)
         for j in range(len(mgsmatrix)):
             output += '{:.2f}\t|'.format(mgsmatrix[j][i] * 100)
@@ -134,7 +134,7 @@ def likely_key(string, m, verbose=False):
     # each y and get the top dot products
     for q in qs:
         mgs = list()
-        for g in range(0, 25):
+        for g in range(0, 26):
             mg = np.dot(np.roll(q, -g), p)
 
             mgs.append(mg)
