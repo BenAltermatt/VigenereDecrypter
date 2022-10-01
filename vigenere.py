@@ -43,7 +43,7 @@ def index_c(string):
 # calculates the distance of the index of
 # coincidence for each string from the ideal of 
 # .065, summing and returning a total error for m
-def m_error(string, m):
+def m_error(string, m, verbose=False):
     # first, we must build the substrings
 
     substrs = [''] * m # m substrings
@@ -57,8 +57,13 @@ def m_error(string, m):
     # their errors to the total error
     total_error = 0
 
-    for substr in substrs:
+    for ind in range(len(substrs)):
+        substr = substrs[ind]
+
         error = .065 - index_c(substr)
+
+        if verbose:
+            print('\ty{:d} is {:s}\n\tand has an index of coincidence of {:f}'.format(ind, substr, index_c(substr)))
 
         if error < 0:
             total_error += error * -1
@@ -83,7 +88,10 @@ def choose_m(string, mrange=None, verbose=False):
     
     # try and compare the error for each m
     for m in range(min_m, max_m + 1):
-        error = m_error(string, m)
+        error = m_error(string, m, verbose)
+
+        if verbose:
+            print('Average \'error\' for m of {:d} was {:f}'.format(m, error))
 
         if minError == -1 or minError > error:
             minError = error
@@ -92,8 +100,23 @@ def choose_m(string, mrange=None, verbose=False):
     return best_m
 
 
+def build_table(mgsmatrix):
+    output = '|g\t|'
+    for i in range(len(mgsmatrix)):
+        output += "M{:d}\t|".format(i + 1)
+    
+    output += '\n'
+
+    for i in range(0, 25):
+        output += '|{:d}\t|'.format(i)
+        for j in range(len(mgsmatrix)):
+            output += '{:.2f}\t|'.format(mgsmatrix[j][i] * 100)
+        output += '\n'
+    
+    return output
+
 # most likely key
-def likely_key(string, m):
+def likely_key(string, m, verbose=False):
     g_prods = list() # this is the list of dot products between the offset messages and p
     y = [''] * m
 
@@ -106,38 +129,41 @@ def likely_key(string, m):
     for yi in y:
         qs.append(freq_vec(yi) / len(yi))
 
-    mgs = list()
+    mgmat = list()
     # now for every value of g, we need to roll through each value in 
     # each y and get the top dot products
     for q in qs:
-        topmg = 0      # best g offset
-        mgval = 0   # dot product of best g offset
+        mgs = list()
         for g in range(0, 25):
             mg = np.dot(np.roll(q, -g), p)
 
-            if mgval < mg:
-                topmg = g
-                mgval = mg
+            mgs.append(mg)
         
-        mgs.append(topmg)
+        mgmat.append(np.array(mgs))
 
     # the mgs should be offsets we can associate with letters
     key = ''
-    for g in mgs:
-        key += chr(65 + g)
-    
+    for g in mgmat:
+        key += chr(65 + g.argmax())
+
+    if verbose:
+        print(build_table(mgmat))
+
     return key.lower()
 
 
 # this will decrypt a message into plaintext
 def decrypt(string, key=None, verbose=False, mrange=None):
 
+    if verbose:
+        print(string)
+
     # if the key is none we have to run through and print out 
     if not key:
         print('No key passed. Performing ciphertext only attack. (One attempt)')
         # we need to figure out m
-        m = choose_m(string, mrange)
-        key = likely_key(string, m)
+        m = choose_m(string, mrange, verbose)
+        key = likely_key(string, m, verbose)
         print('Found most likely key: {:s}'.format(key))
     
     # now the simple actual decryption
@@ -174,7 +200,7 @@ if '-r' in args:
     while sys.argv[ind] != '-r':
         ind += 1
     
-    mrange = (sys.argv[ind + 1], sys.argv[ind + 2])
+    mrange = (int(sys.argv[ind + 1]), int(sys.argv[ind + 2]))
 
 key = None
 if '-k' in args:
