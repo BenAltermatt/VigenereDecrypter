@@ -1,3 +1,11 @@
+# MATH4175 Group 5
+# Members: 
+# Benjamin Altermatt
+# Greg Harrison
+# Claire Seibel
+# Jared Orendorff
+# Nam Hoang Tran
+
 import numpy as np  # vectorization will make our operations a lil faster
 import warnings
 warnings.filterwarnings('ignore')
